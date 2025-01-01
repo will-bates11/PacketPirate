@@ -7,6 +7,13 @@ import networkx as nx
 import socket
 import struct
 import collections
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def ip_to_int(ip):
     """Convert an IP string to a long integer."""
@@ -70,6 +77,17 @@ def enhanced_visualization(df):
         plt.show()
     except Exception as e:
         print(f"Error in data visualization: {e}")
+
+def validate_interface(interface):
+    """Validate if interface exists."""
+    try:
+        interfaces = scapy.get_if_list()
+        if interface not in interfaces:
+            raise ValueError(f"Interface {interface} not found. Available interfaces: {interfaces}")
+        return True
+    except Exception as e:
+        logger.error(f"Interface validation failed: {e}")
+        return False
 
 def main():
     """Main function to orchestrate packet capture and analysis."""
