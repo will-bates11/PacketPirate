@@ -29,10 +29,13 @@ def analyze_packets(packets):
     if packets is not None:
         for pkt in packets:
             if scapy.IP in pkt:
+                payload_len = len(pkt[scapy.IP].payload) if pkt.haslayer(scapy.IP) else 0
                 record = {'timestamp': pkt.time,
                           'src': ip_to_int(pkt[scapy.IP].src),
                           'dst': ip_to_int(pkt[scapy.IP].dst),
-                          'protocol': pkt[scapy.IP].proto}
+                          'protocol': pkt[scapy.IP].proto,
+                          'length': payload_len,
+                          'ttl': pkt[scapy.IP].ttl}
                 records.append(record)
     return pd.DataFrame(records) if records else None
 
@@ -48,8 +51,17 @@ def network_behavior_analysis(df):
         print(f"Error in network behavior analysis: {e}")
         return df
 
+def plot_statistics(df):
+    """Plot packet statistics."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    df['protocol'].value_counts().plot(kind='bar', ax=ax1, title='Protocol Distribution')
+    df['length'].hist(ax=ax2, bins=50, title='Packet Size Distribution')
+    plt.tight_layout()
+    plt.show()
+
 def enhanced_visualization(df):
     """Create an enhanced network graph visualization."""
+    plot_statistics(df)
     try:
         G = nx.from_pandas_edgelist(df, 'src', 'dst', create_using=nx.DiGraph())
         pos = nx.spring_layout(G)
@@ -67,6 +79,8 @@ def main():
     parser.add_argument('-c', '--count', type=int, default=100, help='Number of packets to capture')
     parser.add_argument('-f', '--filter', help='BPF filter string')
     parser.add_argument('-o', '--output', help='Save results to file')
+    parser.add_argument('--format', choices=['csv', 'json', 'pcap'], default='csv',
+                       help='Output format (default: csv)')
     args = parser.parse_args()
     
     packets = capture_packets(interface=args.interface, count=args.count, filter_str=args.filter)
