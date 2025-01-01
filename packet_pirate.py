@@ -115,5 +115,25 @@ def main():
     else:
         print("Packet capture failed.")
 
+@app.route('/api/capture', methods=['POST'])
+@token_required
+def api_capture():
+    data = request.get_json()
+    packets = capture_packets(
+        interface=data.get('interface', 'eth0'),
+        count=data.get('count', 100),
+        filter_str=data.get('filter')
+    )
+    df = analyze_packets(packets)
+    return jsonify(df.to_dict())
+
+@app.route('/api/analyze', methods=['POST'])
+@token_required
+def api_analyze():
+    data = request.get_json()
+    df = pd.DataFrame(data)
+    result = network_behavior_analysis(df)
+    return jsonify(result.to_dict())
+
 if __name__ == "__main__":
-    main()
+    app.run(host='0.0.0.0', port=8080)
