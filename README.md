@@ -1,28 +1,35 @@
-# PacketPirate: Your Network Packet Analyzer
 
-PacketPirate is a Python-based tool for capturing, analyzing, and visualizing network packets. It uses libraries such as Scapy, Pandas, Matplotlib, SKLearn, and NetworkX to provide a comprehensive analysis of network behavior.
+# PacketPirate 🏴‍☠️
 
-## Installation
-
-Before running PacketPirate, make sure you have the required Python libraries installed. You can install them using pip:
-Please note that capturing packets might require root or administrative permissions.
-
-```bash
-pip install scapy pandas matplotlib sklearn networkx
-```
-
-## Running PacketPirate
-
-```bash
-python PacketPirate.py
-```
+A Python-based network packet analyzer for capturing, analyzing, and visualizing network traffic patterns.
 
 ## Features
--Captures network packets in real-time. <br>
--Analyzes the captured packets and extracts useful information. <br>
--Performs network behavior analysis on the analyzed data. <br>
--Visualizes the results for better understanding of the network behavior. <br>
+- Real-time packet capture and analysis
+- Network behavior clustering using K-means
+- Interactive network visualization
+- BPF filter support
+- Customizable packet count and interface selection
 
-<br>
+## Installation
+```bash
+pip install -r requirements.txt
+```
 
-Enjoy exploring the seas of your network with PacketPirate!
+## Usage
+```bash
+python packet_pirate.py -i eth0 -c 100 -f "tcp port 80"
+```
+
+### Arguments
+- `-i, --interface`: Network interface (default: eth0)
+- `-c, --count`: Number of packets to capture (default: 100)
+- `-f, --filter`: BPF filter string
+- `-o, --output`: Save results to file
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+## License
+MIT License

@@ -61,12 +61,23 @@ def enhanced_visualization(df):
 
 def main():
     """Main function to orchestrate packet capture and analysis."""
-    packets = capture_packets()
+    import argparse
+    parser = argparse.ArgumentParser(description='PacketPirate: Network Packet Analyzer')
+    parser.add_argument('-i', '--interface', default='eth0', help='Network interface to capture')
+    parser.add_argument('-c', '--count', type=int, default=100, help='Number of packets to capture')
+    parser.add_argument('-f', '--filter', help='BPF filter string')
+    parser.add_argument('-o', '--output', help='Save results to file')
+    args = parser.parse_args()
+    
+    packets = capture_packets(interface=args.interface, count=args.count, filter_str=args.filter)
     if packets:
         df = analyze_packets(packets)
         if df is not None and not df.empty:
             df = network_behavior_analysis(df)
             enhanced_visualization(df)
+            if args.output:
+                df.to_csv(args.output, index=False)
+                print(f"Results saved to {args.output}")
         else:
             print("No data to analyze.")
     else:
