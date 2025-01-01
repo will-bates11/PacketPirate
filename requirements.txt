@@ -19,3 +19,7 @@ plotly
 matplotlib
 pandas
 scikit-learn
+flask-limiter
+flask-wtf
+flask-limiter
+flask-wtf
