@@ -1,0 +1,35 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h1>Network Traffic Dashboard</h1>
+<div class="chart" id="trafficChart"></div>
+<div class="chart" id="protocolChart"></div>
+<div class="chart" id="sizeChart"></div>
+<script>
+    function updateCharts() {
+        $.getJSON('/api/stats', function(data) {
+            Plotly.newPlot('trafficChart', [{
+                x: data.timestamps,
+                y: data.packet_counts,
+                type: 'scatter',
+                name: 'Packet Count'
+            }], {title: 'Network Traffic Over Time'});
+
+            Plotly.newPlot('protocolChart', [{
+                values: data.protocol_counts.values,
+                labels: data.protocol_counts.labels,
+                type: 'pie',
+                name: 'Protocols'
+            }], {title: 'Protocol Distribution'});
+
+            Plotly.newPlot('sizeChart', [{
+                x: data.packet_sizes,
+                type: 'histogram',
+                name: 'Packet Sizes'
+            }], {title: 'Packet Size Distribution'});
+        });
+    }
+    setInterval(updateCharts, 5000);
+    updateCharts();
+</script>
+{% endblock %}

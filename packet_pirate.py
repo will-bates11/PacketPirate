@@ -30,6 +30,8 @@ def capture_packets(interface='eth0', count=100, filter_str=None):
         return None
 
 def analyze_packets(packets):
+    """Analyze captured packets and store historical data."""
+    global packet_history
     """Analyze captured packets and create a DataFrame with statistics."""
     packet_stats = {'total_packets': 0, 'protocols': collections.Counter()}
     records = []
@@ -44,7 +46,10 @@ def analyze_packets(packets):
                           'length': payload_len,
                           'ttl': pkt[scapy.IP].ttl}
                 records.append(record)
-    return pd.DataFrame(records) if records else None
+    df = pd.DataFrame(records) if records else None
+    if df is not None and not df.empty:
+        df.to_csv('packet_history.csv', mode='a', header=not os.path.exists('packet_history.csv'), index=False)
+    return df
 
 def network_behavior_analysis(df):
     """Perform network behavior analysis using KMeans clustering."""
@@ -137,6 +142,26 @@ def api_analyze():
     df = pd.DataFrame(data)
     result = network_behavior_analysis(df)
     return jsonify(result.to_dict())
+
+@app.route('/')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/api/stats')
+@token_required
+def get_stats():
+    df = pd.read_csv('packet_history.csv') if os.path.exists('packet_history.csv') else pd.DataFrame()
+    
+    stats = {
+        'timestamps': df['timestamp'].tolist() if not df.empty else [],
+        'packet_counts': df.groupby('timestamp').size().tolist() if not df.empty else [],
+        'protocol_counts': {
+            'labels': df['protocol'].value_counts().index.tolist() if not df.empty else [],
+            'values': df['protocol'].value_counts().tolist() if not df.empty else []
+        },
+        'packet_sizes': df['length'].tolist() if not df.empty else []
+    }
+    return jsonify(stats)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080)
