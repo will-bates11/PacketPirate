@@ -23,3 +23,5 @@ flask-limiter
 flask-wtf
 flask-limiter
 flask-wtf
+bcrypt
+flask-session
