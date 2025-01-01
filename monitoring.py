@@ -8,12 +8,29 @@ import json
 from typing import Dict, List
 
 class AlertRule:
+    """A rule for triggering alerts based on packet count conditions.
+    
+    Attributes:
+        name (str): Name of the alert rule
+        condition (str): Type of condition ('greater_than', 'less_than', 'equals')
+        threshold (int): Threshold value for triggering the alert
+    """
     def __init__(self, name: str, condition: str, threshold: int):
         self.name = name
-        self.condition = condition  # 'greater_than', 'less_than', 'equals'
+        self.condition = condition
         self.threshold = threshold
 
 class Monitor:
+    """Network traffic monitor that triggers alerts based on packet counts.
+    
+    Attributes:
+        packet_count (int): Current count of packets
+        threshold (int): Default threshold for alerting
+        alerts (list): History of triggered alerts
+        alert_rules (list): List of custom alert rules
+        webhook_urls (list): URLs for webhook notifications
+        email_config (dict): Email notification settings
+    """
     def __init__(self, threshold=1000):
         self.packet_count = 0
         self.threshold = threshold
@@ -29,16 +46,34 @@ class Monitor:
         }
         
     def add_alert_rule(self, name: str, condition: str, threshold: int):
-        """Add a custom alert rule."""
+        """Add a custom alert rule.
+        
+        Args:
+            name: Name of the rule
+            condition: Type of condition ('greater_than', 'less_than', 'equals')
+            threshold: Value to trigger the alert
+        """
         self.alert_rules.append(AlertRule(name, condition, threshold))
         
     def add_webhook(self, url: str):
-        """Add a webhook URL for notifications."""
+        """Add a webhook URL for notifications.
+        
+        Args:
+            url: Webhook endpoint URL
+        """
         self.webhook_urls.append(url)
         
     def configure_email(self, smtp_server: str, smtp_port: int, sender: str, 
                        password: str, recipient: str):
-        """Configure email settings."""
+        """Configure email notification settings.
+        
+        Args:
+            smtp_server: SMTP server address
+            smtp_port: SMTP server port
+            sender: Sender email address
+            password: Sender email password
+            recipient: Recipient email address
+        """
         self.email_config.update({
             'smtp_server': smtp_server,
             'smtp_port': smtp_port,
@@ -48,7 +83,11 @@ class Monitor:
         })
         
     def send_email_alert(self, message: str):
-        """Send email notification."""
+        """Send email notification.
+        
+        Args:
+            message: Alert message to send
+        """
         if not all(self.email_config.values()):
             return
             
@@ -68,7 +107,11 @@ class Monitor:
             print(f"Failed to send email: {e}")
             
     def send_webhook_alert(self, message: str):
-        """Send webhook notification."""
+        """Send webhook notification.
+        
+        Args:
+            message: Alert message to send
+        """
         payload = {
             'text': message,
             'timestamp': time.time()
@@ -81,7 +124,11 @@ class Monitor:
                 print(f"Failed to send webhook to {url}: {e}")
                 
     def check_rules(self) -> List[str]:
-        """Check all alert rules and return triggered alerts."""
+        """Check all alert rules and return triggered alerts.
+        
+        Returns:
+            List of triggered alert messages
+        """
         triggered = []
         for rule in self.alert_rules:
             if (rule.condition == 'greater_than' and self.packet_count > rule.threshold) or \
@@ -95,9 +142,8 @@ class Monitor:
         threading.Thread(target=self._monitor_loop).start()
         
     def _monitor_loop(self):
-        """Main monitoring loop."""
+        """Main monitoring loop that checks thresholds and sends alerts."""
         while True:
-            # Check default threshold
             if self.packet_count > self.threshold:
                 message = f'High traffic detected: {self.packet_count} packets'
                 self.alerts.append({
@@ -107,7 +153,6 @@ class Monitor:
                 self.send_email_alert(message)
                 self.send_webhook_alert(message)
             
-            # Check custom rules
             triggered_alerts = self.check_rules()
             for alert in triggered_alerts:
                 self.alerts.append({
