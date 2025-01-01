@@ -6,3 +6,5 @@ scikit-learn>=1.0.0
 networkx>=2.8.0
 scapy-python3
 scapy-python3
+numpy
+numpy
