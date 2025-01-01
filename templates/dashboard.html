@@ -1,35 +1,81 @@
 
 {% extends "base.html" %}
 {% block content %}
-<h1>Network Traffic Dashboard</h1>
 <div class="chart" id="trafficChart"></div>
 <div class="chart" id="protocolChart"></div>
 <div class="chart" id="sizeChart"></div>
+
 <script>
-    function updateCharts() {
-        $.getJSON('/api/stats', function(data) {
-            Plotly.newPlot('trafficChart', [{
-                x: data.timestamps,
-                y: data.packet_counts,
-                type: 'scatter',
-                name: 'Packet Count'
-            }], {title: 'Network Traffic Over Time'});
+let charts = {};
 
-            Plotly.newPlot('protocolChart', [{
-                values: data.protocol_counts.values,
-                labels: data.protocol_counts.labels,
-                type: 'pie',
-                name: 'Protocols'
-            }], {title: 'Protocol Distribution'});
+function initCharts() {
+    charts.traffic = {
+        data: [{
+            x: [],
+            y: [],
+            type: 'scatter',
+            name: 'Packet Count'
+        }],
+        layout: {
+            title: 'Network Traffic Over Time',
+            height: 400
+        }
+    };
 
-            Plotly.newPlot('sizeChart', [{
-                x: data.packet_sizes,
-                type: 'histogram',
-                name: 'Packet Sizes'
-            }], {title: 'Packet Size Distribution'});
+    charts.protocol = {
+        data: [{
+            values: [],
+            labels: [],
+            type: 'pie',
+            name: 'Protocols'
+        }],
+        layout: {
+            title: 'Protocol Distribution',
+            height: 400
+        }
+    };
+
+    charts.size = {
+        data: [{
+            x: [],
+            type: 'histogram',
+            name: 'Packet Sizes'
+        }],
+        layout: {
+            title: 'Packet Size Distribution',
+            height: 400
+        }
+    };
+
+    Object.entries(charts).forEach(([id, chart]) => {
+        Plotly.newPlot(id + 'Chart', chart.data, chart.layout);
+    });
+}
+
+function updateCharts() {
+    $.getJSON('/api/stats')
+        .done(function(data) {
+            Plotly.update('trafficChart', {
+                x: [data.timestamps],
+                y: [data.packet_counts]
+            });
+
+            Plotly.update('protocolChart', {
+                values: [data.protocol_counts.values],
+                labels: [data.protocol_counts.labels]
+            });
+
+            Plotly.update('sizeChart', {
+                x: [data.packet_sizes]
+            });
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Failed to fetch stats:', errorThrown);
         });
-    }
-    setInterval(updateCharts, 5000);
-    updateCharts();
+}
+
+initCharts();
+setInterval(updateCharts, 5000);
+updateCharts();
 </script>
 {% endblock %}
