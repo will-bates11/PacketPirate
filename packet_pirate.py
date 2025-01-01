@@ -103,13 +103,37 @@ def main():
     parser = argparse.ArgumentParser(description='PacketPirate: Network Packet Analyzer')
     parser.add_argument('-i', '--interface', default='eth0', help='Network interface to capture')
     parser.add_argument('-c', '--count', type=int, default=100, help='Number of packets to capture')
-    parser.add_argument('-f', '--filter', help='BPF filter string')
+    parser.add_argument('-f', '--filter', help='BPF filter string or preset name')
+    parser.add_argument('--add-filter', nargs=2, metavar=('NAME', 'FILTER'), help='Add custom filter')
+    parser.add_argument('--list-filters', action='store_true', help='List available filters')
+    parser.add_argument('--delete-filter', metavar='NAME', help='Delete custom filter')
     parser.add_argument('-o', '--output', help='Save results to file')
     parser.add_argument('--format', choices=['csv', 'json', 'pcap'], default='csv',
                        help='Output format (default: csv)')
     args = parser.parse_args()
     
-    packets = capture_packets(interface=args.interface, count=args.count, filter_str=args.filter)
+    if args.list_filters:
+        print("Available filters:", ", ".join(filter_rules.list_rules()))
+        return
+        
+    if args.add_filter:
+        name, filter_str = args.add_filter
+        filter_rules.add_rule(name, filter_str)
+        print(f"Added filter '{name}': {filter_str}")
+        return
+        
+    if args.delete_filter:
+        if filter_rules.delete_rule(args.delete_filter):
+            print(f"Deleted filter '{args.delete_filter}'")
+        else:
+            print(f"Cannot delete filter '{args.delete_filter}'")
+        return
+        
+    filter_str = args.filter
+    if args.filter in filter_rules.rules:
+        filter_str = filter_rules.get_rule(args.filter)
+        
+    packets = capture_packets(interface=args.interface, count=args.count, filter_str=filter_str)
     if packets:
         df = analyze_packets(packets)
         if df is not None and not df.empty:
