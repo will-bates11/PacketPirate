@@ -20,8 +20,21 @@ class FilterRules:
     
     def add_rule(self, name, filter_str):
         """Add or update a filter rule"""
+        if not name or not filter_str:
+            raise ValueError("Name and filter string cannot be empty")
+        if not self._validate_filter(filter_str):
+            raise ValueError("Invalid filter syntax")
         self.rules[name] = filter_str
         self.save_custom_rules()
+        
+    def _validate_filter(self, filter_str):
+        """Validate BPF filter syntax"""
+        try:
+            from scapy.all import conf
+            conf.L3socket(filter=filter_str)
+            return True
+        except Exception:
+            return False
         
     def get_rule(self, name):
         """Get a filter rule by name"""
