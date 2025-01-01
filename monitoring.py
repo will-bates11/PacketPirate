@@ -167,3 +167,35 @@ class Monitor:
     def add_packet(self):
         """Increment packet count."""
         self.packet_count += 1
+        
+    def get_system_metrics(self):
+        """Get system resource metrics."""
+        import psutil
+        return {
+            'cpu_percent': psutil.cpu_percent(),
+            'memory_percent': psutil.virtual_memory().percent,
+            'disk_percent': psutil.disk_usage('/').percent,
+            'network_io': psutil.net_io_counters()._asdict()
+        }
+
+    def check_system_health(self):
+        """Check system health metrics and trigger alerts."""
+        metrics = self.get_system_metrics()
+        alerts = []
+        
+        if metrics['cpu_percent'] > 80:
+            alerts.append(f"High CPU usage: {metrics['cpu_percent']}%")
+        if metrics['memory_percent'] > 80:
+            alerts.append(f"High memory usage: {metrics['memory_percent']}%")
+        if metrics['disk_percent'] > 80:
+            alerts.append(f"High disk usage: {metrics['disk_percent']}%")
+            
+        for alert in alerts:
+            self.send_email_alert(alert)
+            self.send_webhook_alert(alert)
+            self.alerts.append({
+                'timestamp': time.time(),
+                'message': alert,
+                'type': 'system'
+            })
+        return alerts

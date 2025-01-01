@@ -216,6 +216,26 @@ def api_analyze():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/health')
+def health_check():
+    """Basic health check endpoint."""
+    return jsonify({'status': 'healthy', 'timestamp': time.time()})
+
+@app.route('/health/detailed')
+@token_required
+def detailed_health():
+    """Detailed health check with system metrics."""
+    monitor = Monitor()
+    metrics = monitor.get_system_metrics()
+    alerts = monitor.check_system_health()
+    
+    return jsonify({
+        'status': 'healthy' if not alerts else 'warning',
+        'timestamp': time.time(),
+        'metrics': metrics,
+        'alerts': alerts
+    })
+
 @app.route('/api/stats')
 @token_required
 def get_stats():

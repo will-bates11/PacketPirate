@@ -25,3 +25,4 @@ flask-limiter
 flask-wtf
 bcrypt
 flask-session
+psutil
