@@ -12,17 +12,19 @@ def ip_to_int(ip):
     """Convert an IP string to a long integer."""
     return struct.unpack("!I", socket.inet_aton(ip))[0]
 
-def capture_packets(interface='eth0', count=100):
-    """Capture network packets using Scapy."""
+def capture_packets(interface='eth0', count=100, filter_str=None):
+    """Capture network packets using Scapy with optional filtering."""
     try:
-        packets = scapy.sniff(iface=interface, count=count, timeout=10)
+        packets = scapy.sniff(iface=interface, count=count, timeout=10, 
+                            filter=filter_str)
         return packets
     except Exception as e:
         print(f"Error capturing packets: {e}")
         return None
 
 def analyze_packets(packets):
-    """Analyze captured packets and create a DataFrame."""
+    """Analyze captured packets and create a DataFrame with statistics."""
+    packet_stats = {'total_packets': 0, 'protocols': collections.Counter()}
     records = []
     if packets is not None:
         for pkt in packets:
