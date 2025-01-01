@@ -89,8 +89,11 @@ def validate_interface(interface):
         logger.error(f"Interface validation failed: {e}")
         return False
 
+from filter_rules import FilterRules
+
 def main():
     """Main function to orchestrate packet capture and analysis."""
+    filter_rules = FilterRules()
     import argparse
     parser = argparse.ArgumentParser(description='PacketPirate: Network Packet Analyzer')
     parser.add_argument('-i', '--interface', default='eth0', help='Network interface to capture')
