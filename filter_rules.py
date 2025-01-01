@@ -14,7 +14,21 @@ class FilterRules:
             'telnet': 'tcp port 23',
             'rdp': 'tcp port 3389',
             'icmp': 'icmp',
-            'high_ports': 'portrange 1024-65535'
+            'high_ports': 'portrange 1024-65535',
+            'dhcp': 'udp port (67 or 68)',
+            'ntp': 'udp port 123',
+            'mysql': 'tcp port 3306',
+            'postgres': 'tcp port 5432',
+            'mongodb': 'tcp port 27017',
+            'redis': 'tcp port 6379',
+            'ldap': 'tcp port 389',
+            'smb': 'tcp port 445',
+            'all_tcp': 'tcp',
+            'all_udp': 'udp',
+            'broadcast': 'ether broadcast',
+            'multicast': 'ether multicast',
+            'large_packets': 'greater 1500',
+            'small_packets': 'less 64'
         }
         self.load_custom_rules()
     
