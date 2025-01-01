@@ -52,12 +52,34 @@ def analyze_packets(packets):
     return df
 
 def network_behavior_analysis(df):
-    """Perform network behavior analysis using KMeans clustering."""
+    """Perform network behavior analysis using KMeans clustering and anomaly detection."""
     try:
+        # Scale features
         scaler = StandardScaler()
-        df_scaled = scaler.fit_transform(df[['src', 'dst']])
-        kmeans = KMeans(n_clusters=2)
+        features = ['src', 'dst', 'length', 'ttl']
+        df_scaled = scaler.fit_transform(df[features])
+        
+        # Clustering for behavior analysis
+        kmeans = KMeans(n_clusters=3)
         df['cluster'] = kmeans.fit_predict(df_scaled)
+        
+        # Anomaly detection using cluster distances
+        distances = kmeans.transform(df_scaled)
+        df['anomaly_score'] = distances.min(axis=1)
+        df['is_anomaly'] = df['anomaly_score'] > df['anomaly_score'].quantile(0.95)
+        
+        # Traffic pattern prediction (time series forecasting)
+        if 'timestamp' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df.set_index('timestamp', inplace=True)
+            df['packet_count'] = 1
+            traffic_pattern = df.resample('1min').count()['packet_count']
+            
+            # Simple moving average prediction
+            window_size = 5
+            traffic_pattern['predicted_next'] = traffic_pattern.rolling(window=window_size).mean().shift(-1)
+            df['predicted_traffic'] = df.index.map(traffic_pattern['predicted_next'])
+        
         return df
     except Exception as e:
         print(f"Error in network behavior analysis: {e}")
@@ -72,14 +94,37 @@ def plot_statistics(df):
     plt.show()
 
 def enhanced_visualization(df):
-    """Create an enhanced network graph visualization."""
-    plot_statistics(df)
-    try:
-        G = nx.from_pandas_edgelist(df, 'src', 'dst', create_using=nx.DiGraph())
-        pos = nx.spring_layout(G)
-        colors = ['red' if node in df[df['cluster'] == 0]['src'].values else 'blue' for node in G.nodes()]
-        nx.draw(G, pos, with_labels=True, node_color=colors, edge_color='gray', alpha=0.7, linewidths=1, node_size=500)
-        plt.show()
+    """Create an enhanced network graph visualization with anomalies and predictions."""
+    fig = plt.figure(figsize=(15, 10))
+    
+    # Traffic patterns and anomalies
+    ax1 = plt.subplot(221)
+    df.reset_index()['timestamp'].hist(bins=50, ax=ax1)
+    ax1.set_title('Traffic Distribution')
+    
+    # Protocol distribution
+    ax2 = plt.subplot(222)
+    df['protocol'].value_counts().plot(kind='bar', ax=ax2)
+    ax2.set_title('Protocol Distribution')
+    
+    # Network graph with anomalies
+    ax3 = plt.subplot(223)
+    G = nx.from_pandas_edgelist(df, 'src', 'dst', create_using=nx.DiGraph())
+    pos = nx.spring_layout(G)
+    colors = ['red' if node in df[df['is_anomaly']]['src'].values else 'blue' for node in G.nodes()]
+    nx.draw(G, pos, with_labels=True, node_color=colors, edge_color='gray', alpha=0.7, linewidths=1, node_size=500, ax=ax3)
+    ax3.set_title('Network Graph (Red: Anomalies)')
+    
+    # Traffic prediction
+    if 'predicted_traffic' in df.columns:
+        ax4 = plt.subplot(224)
+        df['packet_count'].plot(ax=ax4, label='Actual')
+        df['predicted_traffic'].plot(ax=ax4, label='Predicted', style='--')
+        ax4.set_title('Traffic Pattern Prediction')
+        ax4.legend()
+    
+    plt.tight_layout()
+    plt.show()
     except Exception as e:
         print(f"Error in data visualization: {e}")
 

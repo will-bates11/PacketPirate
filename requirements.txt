@@ -16,3 +16,6 @@ flask
 pyjwt
 requests
 plotly
+matplotlib
+pandas
+scikit-learn
