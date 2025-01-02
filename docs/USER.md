@@ -13,7 +13,7 @@ PacketPirate is a network packet analyzer for capturing, analyzing, and visualiz
 - Email/webhook alerts
 
 ## Installation
-1. Fork on Replit
+1. Fork
 2. Configure alerts in config.py (optional)
 3. Start the application
 
