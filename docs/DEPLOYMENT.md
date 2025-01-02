@@ -1,10 +1,10 @@
 
 # PacketPirate Deployment Guide
 
-## Deployment on Replit
+## Deployment
 
 1. Setup
-   - Fork the repository on Replit
+   - Fork the repository
    - Install dependencies automatically via requirements.txt
 
 2. Configuration
@@ -12,14 +12,8 @@
    - Configure monitoring thresholds
    - Set up alert endpoints
 
-3. Deploy
-   - Click "Deploy" in Replit
-   - Choose "Autoscale" deployment
-   - Set run command: `python packet_pirate.py`
-   - Configure domain name
-
-4. Monitoring
-   - Check logs in Replit console
+3. Monitoring
+   - Check logs
    - Monitor system health at /health
    - View metrics at /api/stats
 
