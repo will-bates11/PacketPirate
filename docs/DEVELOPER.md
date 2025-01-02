@@ -34,7 +34,7 @@
 
 ## Development Setup
 
-1. Clone the repository on Replit
+1. Clone the repository
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
