@@ -1,7 +1,14 @@
 
-from elasticsearch import Elasticsearch, ElasticsearchException
+from elasticsearch import Elasticsearch
 import datetime
 import logging
+
+# Handle different versions of elasticsearch
+try:
+    from elasticsearch import ElasticsearchException
+except ImportError:
+    # In newer versions, use the base Exception class
+    ElasticsearchException = Exception
 
 class PacketLogger:
     def __init__(self):
